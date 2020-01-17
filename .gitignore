@@ -42,3 +42,5 @@ Debug/Targa View.exe
 *.tlog
 *.idb
 *.res
+Debug
+Targa View/Release/Targa View.vcxproj.FileListAbsolute.txt
