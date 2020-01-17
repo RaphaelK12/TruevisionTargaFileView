@@ -16,7 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
-    <None Include="char.ico">
+    <None Include="Targa View.ico">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

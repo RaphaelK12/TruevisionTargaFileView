@@ -77,7 +77,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="char.ico" />
+    <None Include="Targa View.ico" />
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>

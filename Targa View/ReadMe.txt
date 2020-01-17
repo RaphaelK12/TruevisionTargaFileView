@@ -21,8 +21,20 @@ Targa View.vcxproj.filters
     similar extensions under a specific node (for e.g. ".cpp" files are associated with the
     "Source Files" filter).
 
+Targa View.sln
+    Visual Studio 2019 solution file for this project.
+
 Targa View.cpp
     This is the main application source file.
+
+Targa View.h
+    This is the header of the main application source file.
+
+Util.cpp
+    Utility functions for the program.
+
+Util.h
+    Utility function header for the program, contains the function prototypes.
 
 /////////////////////////////////////////////////////////////////////////////
 AppWizard has created the following resources:
