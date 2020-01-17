@@ -27,6 +27,18 @@
 *.lib
 
 # Executables
-*.exe
 *.out
 *.app
+Debug/Targa View.exe
+
+# Others
+*.vs
+*.iobj
+*.pdb
+*.ipdb
+*.log
+*.ilk
+*.aps
+*.tlog
+*.idb
+*.res
