@@ -82,11 +82,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 		float w1=1, w2=1;
 		float x, y, scx, scy;
 		if (hbm1) {
-			scx = screenx;
-			scy = screeny;
+			scx = (float)screenx;
+			scy = (float)screeny;
 			GetObject(hbm1, sizeof(bm), &bm);
-			x = bm.bmWidth+2;
-			y = bm.bmHeight+2;
+			x = (float)bm.bmWidth+2;
+			y = (float)bm.bmHeight+2;
 
 			if (scx < x) w1 = scx / x; 
 			if (scy < y) w2 = scy / y; 
@@ -99,7 +99,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 			GetObject(hbm1, sizeof(bm), &bm);
 			if (adaptive)
 			//					posstr		  posend									posstr2
-				StretchBlt(hdc, 1, 1, int(floorf(x - 1.5)), int(floorf(y - 1.5)), hdcMem, 0, 0, bm.bmWidth, bm.bmHeight, SRCCOPY);
+				StretchBlt(hdc, 1, 1, int(floorf(x - 1.5f)), int(floorf(y - 1.5f)), hdcMem, 0, 0, bm.bmWidth, bm.bmHeight, SRCCOPY);
 			else
 				BitBlt(hdc, 1, 1, bm.bmWidth, bm.bmHeight, hdcMem, 0, 0, SRCCOPY);
 			//StretchDIBits(hdc, 10, 10, 200, 200, 0, 0, bm.bmWidth, bm.bmHeight, 0, 0, 0, 0);
@@ -149,14 +149,27 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						fclose(file);
 						if (!img) {
 							printf("***********************\n*** Unsuported File ***\n");
-							printf("%s\nid_length = %i\ncolor_type = %i\nimage_type = %i\n"
-								"color_start = %i\npal_length = %i\npal_depth = %i\n"
-								"x_offset = %i\ny_offset = %i\nxres = %i\nyres = %i\n"
-								"bpp = %i\norientation = %i\n\n",
+							printf("%s\n id_length   = %i\n color_type  = %i\n image_type  = %i\n "
+								"color_start = %i\n pal_length  = %i\n pal_depth   = %i\n "
+								"x_offset = %i\n y_offset = %i\n xres = %i\n yres = %i\n "
+								"bpp  = %i\n orientation = %i\n ",
 								a, h.id_length, h.color_type, h.image_type,
 								h.color_start, h.pal_length, h.pal_depth,
 								h.x_offset, h.y_offset, h.xres, h.yres,
 								h.bpp, h.orientation);
+							char Text[500];
+							sprintf(Text, "\"%s\"\nTGA File HEADER::\n "
+								"id_length   = %i\n color_type  = %i\n image_type = %i\n "
+								"color_start  = %i\n pal_length  = %i\n pal_depth   = %i\n "
+								"x_offset = %i\n y_offset = %i\n xres = %i\n yres = %i\n "
+								"bpp = %i\n orientation = %i\n ",
+								a, h.id_length, h.color_type, h.image_type,
+								h.color_start, h.pal_length, h.pal_depth,
+								h.x_offset, h.y_offset, h.xres, h.yres,
+								h.bpp, h.orientation);
+							InvalidateRect(hwnd, NULL, true);
+							MessageBox(0, Text, "*** Unsuported TGA File ***", 0);
+
 							break;
 						}
 						BITMAPINFO bi = {0,0,0};
@@ -171,7 +184,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 						void* pData = NULL;
 						if (!img->pixels) {
 							delete img;
-							MessageBox(0, "error3: makeXRGB_8 returned NULL;", "error3", 0);
+							InvalidateRect(hwnd, NULL, true);
+							MessageBox(0, "error: No Pixels;", "img->pixels == NULL", 0);
 							return NULL;
 						}
 						hbm1 = CreateDIBSection(NULL, &bi, 0, &pData, NULL, 0);
@@ -236,15 +250,22 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT Message, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-//int WINAPI WinMain(	_In_ HINSTANCE hInstance,	_In_opt_ HINSTANCE hPrevInstance,	_In_ LPSTR lpCmdLine,	_In_ int nShowCmd)
+#ifdef _DEBUG
 int main(int argc, char* argv[])
+#else
+int WINAPI WinMain(	_In_ HINSTANCE hInstance,	_In_opt_ HINSTANCE hPrevInstance,	_In_ LPSTR lpCmdLine,	_In_ int nShowCmd)
+#endif // _DEBUG
 {
 	WNDCLASSEX WndClass;
 	HWND hwnd;
 	MSG Msg;
 	HACCEL hAccelTable;
 	background = CreateSolidBrush(0x999999);
+#ifdef _DEBUG
 	g_hInst = GetModuleHandle(NULL);
+#else
+	g_hInst = hInstance;
+#endif // _DEBUG
 	WndClass.cbSize        = sizeof(WNDCLASSEX);
 	WndClass.style         = 0;
 	WndClass.lpfnWndProc   = WndProc;
@@ -274,7 +295,13 @@ int main(int argc, char* argv[])
 		MessageBox(0, "Window Creation Failed!", "Error!", MB_ICONEXCLAMATION | MB_OK | MB_SYSTEMMODAL);
 		return 0;
 	}
-	ShowWindow(hwnd, 1);
+	ShowWindow(hwnd,
+#ifdef _DEBUG
+		1
+#else
+		nShowCmd
+#endif // _DEBUG
+	);
 	UpdateWindow(hwnd);
 	hAccelTable = LoadAccelerators(g_hInst, MAKEINTRESOURCE(IDR_ACCELERATOR1));
 	while(GetMessage(&Msg, NULL, 0, 0))
@@ -285,6 +312,7 @@ int main(int argc, char* argv[])
 			DispatchMessage(&Msg);
 		}
 	}
+
 	return Msg.wParam;
 }
 

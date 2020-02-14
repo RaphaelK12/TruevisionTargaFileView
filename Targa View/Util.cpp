@@ -2,6 +2,10 @@
 #include "Targa View.h"
 #include "Util.h"
 
+#include <stdio.h>
+//#include "../../../jpeg-9d/jpeglib.h"
+//#include <setjmp.h>
+
 void img_basis::unflip() {
 	if (!pixels || !xres || !yres || !bpp || !dataSize)
 		//printf(0, 0);
@@ -50,7 +54,7 @@ BOOL isUnsuportedTGA(TGA* h) {
 }
 
 uchar decodeTGA_RLE(uchar* pData, uchar bytes, size_t dataSize, FILE* f) {
-	long cnt = 0;
+	ulong cnt = 0;
 	ulong  data = 0;
 	int	len = 0;
 	byte tmp = 0;
@@ -65,7 +69,7 @@ uchar decodeTGA_RLE(uchar* pData, uchar bytes, size_t dataSize, FILE* f) {
 			//addErrorList(IMG_ERRO_FILE_SMALLER, __LINE__);
 			return 1;
 		}
-		tmp = l;
+		tmp = (byte)l;
 		if ((tmp & 0x80))
 		{
 			len = tmp & 0x7F;
@@ -164,7 +168,7 @@ img_basis* loadTGA(FILE* f, TGA& h, int sf) {
 				delete img;
 				return 0;
 			}
-			byte* data = new byte[h.x * h.y * 3];
+			byte* data = new byte[h.x * h.y * 4];
 			if (!data) {
 				delete img;
 				return 0;
@@ -173,24 +177,26 @@ img_basis* loadTGA(FILE* f, TGA& h, int sf) {
 			if (h.pal_depth == 16) {
 				rgb_565* pal = (rgb_565*)img->pal;
 				for (int i = 0; i < h.x * h.y; i++) {
-					data[i * 3 + 0] = pal[img->pixels[i]].r << 4;
-					data[i * 3 + 1] = pal[img->pixels[i]].g << 3;
-					data[i * 3 + 2] = pal[img->pixels[i]].b << 4;
+					data[i * 4 + 0] = pal[img->pixels[i]].r << 4;
+					data[i * 4 + 1] = pal[img->pixels[i]].g << 3;
+					data[i * 4 + 2] = pal[img->pixels[i]].b << 4;
+					data[i * 4 + 3] = 255;
 				}
 			}
 			else {
 				BGR_8* pal = (BGR_8*)img->pal;
 				for (int i = 0; i < h.x * h.y; i++) {
-					data[i * 3 + 0] = pal[img->pixels[i]].b;
-					data[i * 3 + 1] = pal[img->pixels[i]].g;
-					data[i * 3 + 2] = pal[img->pixels[i]].r;
+					data[i * 4 + 0] = pal[img->pixels[i]].b;
+					data[i * 4 + 1] = pal[img->pixels[i]].g;
+					data[i * 4 + 2] = pal[img->pixels[i]].r;
+					data[i * 4 + 3] = 255;
 				}
 			}
 			delete img->pal;
 			img->pal = 0;
 			delete img->pixels;
 			img->pixels = data;
-			img->bpp = 24;
+			img->bpp = 32;
 			img->dataSize = h.x * h.y * (img->bpp / 8);
 			return img;
 		}
@@ -331,20 +337,21 @@ img_basis* loadTGA(FILE* f, TGA& h, int sf) {
 				delete img;
 				return 0;
 			}
-			byte* data = new byte[h.x * h.y * 3];
+			byte* data = new byte[h.x * h.y * 4];
 			if (!data) {
 				delete img;
 				return 0;
 			}
 			l = fread(img->pixels, 1, img->dataSize, f);
 			for (int i = 0; i < h.x * h.y; i++) {
-				data[i * 3 + 0] = img->pixels[i];
-				data[i * 3 + 1] = img->pixels[i];
-				data[i * 3 + 2] = img->pixels[i];
+				data[i * 4 + 0] = img->pixels[i];
+				data[i * 4 + 1] = img->pixels[i];
+				data[i * 4 + 2] = img->pixels[i];
+				data[i * 4 + 3] = 255;
 			}
 			delete img->pixels;
 			img->pixels = data;
-			img->bpp = 24;
+			img->bpp = 32;
 			img->dataSize = h.x * h.y * (img->bpp / 8);
 			return img;
 		}
@@ -394,7 +401,7 @@ img_basis* loadTGA(FILE* f, TGA& h, int sf) {
 				return 0;
 			}
 
-			byte* data = new byte[h.x * h.y * 3];
+			byte* data = new byte[h.x * h.y * 4];
 			if (!data) {
 				delete img;
 				return 0;
@@ -403,26 +410,28 @@ img_basis* loadTGA(FILE* f, TGA& h, int sf) {
 			if (h.pal_depth == 16) {
 				rgba_5551* pal = (rgba_5551*)img->pal;
 				uint i = 0;
-				for (i = 0; i < h.x * h.y; i++) {	// edit
-					data[i * 3 + 0] = pal[(img->pixels[i])].r << 3;
-					data[i * 3 + 1] = pal[(img->pixels[i])].g << 3;
-					data[i * 3 + 2] = pal[(img->pixels[i])].b << 3;
+				for (i = 0; i < uint(h.x * h.y); i++) {	// edit
+					data[i * 4 + 0] = pal[(img->pixels[i])].r << 3;
+					data[i * 4 + 1] = pal[(img->pixels[i])].g << 3;
+					data[i * 4 + 2] = pal[(img->pixels[i])].b << 3;
+					data[i * 4 + 3] = 255;
 				}
 			}
 			if (h.pal_depth == 24) {
 				BGR_8* pal = (BGR_8*)img->pal;
 				uint i = 0;
-				for (i = 0; i < h.x * h.y; i++) {	// edit
-					data[i * 3 + 0] = pal[(img->pixels[i])].r;
-					data[i * 3 + 1] = pal[(img->pixels[i])].g;
-					data[i * 3 + 2] = pal[(img->pixels[i])].b;
+				for (i = 0; i < uint(h.x * h.y); i++) {	// edit
+					data[i * 4 + 0] = pal[(img->pixels[i])].r;
+					data[i * 4 + 1] = pal[(img->pixels[i])].g;
+					data[i * 4 + 2] = pal[(img->pixels[i])].b;
+					data[i * 4 + 3] = 255;
 				}
 			}
 			delete img->pal;
 			img->pal = 0;
 			delete img->pixels;
 			img->pixels = data;
-			img->bpp = 24;
+			img->bpp = 32;
 			img->dataSize = h.x * h.y * (img->bpp / 8);
 			return img;
 		}
@@ -480,7 +489,7 @@ img_basis* loadTGA(FILE* f, TGA& h, int sf) {
 			}
 			decodeTGA_RLE((uchar*)img->pixels, 2, img->dataSize, f);
 			rgba_5551* x = (rgba_5551*)img->pixels;
-			for (uint i = 0; i < (h.x * h.y); i++) {
+			for (uint i = 0; i < uint(h.x * h.y); i++) {
 				data[i * 4 + 0] = (byte)x[i].r << 3;
 				data[i * 4 + 1] = (byte)x[i].g << 3;
 				data[i * 4 + 2] = (byte)x[i].b << 3;
@@ -500,8 +509,21 @@ img_basis* loadTGA(FILE* f, TGA& h, int sf) {
 				delete img;
 				return 0;
 			}
+			byte* data = new byte[h.x * h.y * 4];
+			if (!data) {
+				delete img;
+				return 0;
+			}
 			decodeTGA_RLE((uchar*)img->pixels, 3, img->dataSize, f);
-			img->bpp = 24;
+			for (uint i = 0; i < uint(h.x * h.y); i++) {
+				data[i * 4 + 0] = img->pixels[i * 3 + 0];
+				data[i * 4 + 1] = img->pixels[i * 3 + 1];
+				data[i * 4 + 2] = img->pixels[i * 3 + 2];
+				data[i * 4 + 3] = 255;
+			}
+			delete img->pixels;
+			img->pixels = data;
+			img->bpp = 32;
 			img->dataSize = h.x * h.y * (img->bpp / 8);
 			return img;
 		}
@@ -543,20 +565,21 @@ img_basis* loadTGA(FILE* f, TGA& h, int sf) {
 				delete img;
 				return 0;
 			}
-			byte* data = new byte[h.x * h.y * 3];
+			byte* data = new byte[h.x * h.y * 4];
 			if (!data) {
 				delete img;
 				return 0;
 			}
 			decodeTGA_RLE((uchar*)img->pixels, 1, img->dataSize, f);
 			for (int i = 0; i < h.x * h.y; i++) {
-				data[i * 3 + 0] = img->pixels[i];
-				data[i * 3 + 1] = img->pixels[i];
-				data[i * 3 + 2] = img->pixels[i];
+				data[i * 4 + 0] = img->pixels[i];
+				data[i * 4 + 1] = img->pixels[i];
+				data[i * 4 + 2] = img->pixels[i];
+				data[i * 4 + 3] = 255;
 			}
 			delete img->pixels;
 			img->pixels = data;
-			img->bpp = 24;
+			img->bpp = 32;
 			img->dataSize = h.x * h.y * (img->bpp / 8);
 			return img;
 		}
@@ -574,7 +597,7 @@ img_basis* loadTGA(FILE* f, TGA& h, int sf) {
 				return 0;
 			}
 			decodeTGA_RLE((uchar*)img->pixels, 2, img->dataSize, f);
-			for (int i = 0; i < img->dataSize; i++) {
+			for (int i = 0; i < h.x * h.y; i++) {
 				data[i * 4 + 0] = img->pixels[i * 2];
 				data[i * 4 + 1] = img->pixels[i * 2];
 				data[i * 4 + 2] = img->pixels[i * 2];
@@ -620,10 +643,9 @@ LPSTR removeEndL(LPSTR str, uint size) {
 
 
 
-BOOL isInvalidTGA(TGA* h);
-BOOL isUnsuportedTGA(TGA* h);
-uchar decodeTGA_RLE(uchar* pData, uchar bytes, size_t dataSize, FILE* f);
-img_basis* loadTGA(FILE* f, TGA& h, int sf);
-LPSTR removeEndL(LPSTR str, uint size);
+
+
+
+
 
 

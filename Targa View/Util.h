@@ -2,17 +2,18 @@
 
 // simplified types
 
-typedef unsigned long int		   Bool;
+typedef unsigned int			   Bool;
 typedef   signed char			   schar;
 typedef   signed char			   sbyte;
 typedef unsigned char			   uchar;
 typedef unsigned char			   byte;
 typedef unsigned short			   ushort;
 typedef   signed short			   sshort;
-typedef unsigned long int		   uint;
-typedef   signed long int		   sint;
+typedef unsigned int			   uint;
+typedef   signed int			   sint;
 typedef unsigned long long int	   ulong;
 typedef   signed long long int	   slong;
+
 
 
 #pragma pack(push, 1)   // n = 16, pushed to stack
@@ -152,3 +153,5 @@ BOOL isUnsuportedTGA(TGA* h);
 uchar decodeTGA_RLE(uchar* pData, uchar bytes, size_t dataSize, FILE* f);
 img_basis* loadTGA(FILE* f, TGA& h, int sf);
 LPSTR removeEndL(LPSTR str, uint size);
+
+
